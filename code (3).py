@@ -290,7 +290,7 @@ else:
      st.info("Cole seu texto Markdown na caixa acima para ver a conversão.")
 
 st.markdown("---")
-st.write("Desenvolvido por sua IA assistente, baseado no trabalho de cstayyab.")
+st.write("Desenvolvido com ❤️ por Engº Paulo Rogério Veiga Silva!")
 st.markdown("""
 **Markdown Básico Suportado:**
 *   `**bold**` ou `__bold__` -> Negrito Unicode (𝐀)
