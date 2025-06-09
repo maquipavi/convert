@@ -1,10 +1,9 @@
-# app.py
-
 import streamlit as st
 import re
 from typing import Optional, Dict, Any, List
 
 # --- Mapeamentos Unicode para Estilos ---
+
 _BOLD_MAP = {
     'A': '𝐀', 'B': '𝐁', 'C': '𝐂', 'D': '𝐃', 'E': '𝐄', 'F': '𝐅', 'G': '𝐆', 'H': '𝐇', 'I': '𝐈', 'J': '𝐉', 'K': '𝐊', 'L': '𝐋', 'M': '𝐌', 'N': '𝐍', 'O': '𝐎', 'P': '𝐏', 'Q': '𝐐', 'R': '𝐑', 'S': '𝐒', 'T': '𝐓', 'U': '𝐔', 'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘', 'Z': '𝐙',
     'a': '𝐚', 'b': '𝐛', 'c': '𝐜', 'd': '𝐝', 'e': '𝐞', 'f': '𝐟', 'g': '𝐠', 'h': '𝐡', 'i': '𝐢', 'j': '𝐣', 'k': '𝐤', 'l': '𝐥', 'm': '𝐦', 'n': '𝐧', 'o': '𝐨', 'p': '𝐩', 'q': '𝐪', 'r': '𝐫', 's': '𝐬', 't': '𝐭', 'u': '𝐮', 'v': '𝐯', 'w': '𝐰', 'x': '𝐱', 'y': '𝐲', 'z': '𝐳',
@@ -22,9 +21,10 @@ _MONOSPACE_MAP = {
     '0': '𝟶', '1': '𝟷', '2': '𝟸', '3': '𝟹', '4': '𝟺', '5': '𝟻', '6': '𝟼', '7': '𝟽', '8': '𝟾', '9': '𝟿',
 }
 
-_STRIKETHROUGH_CHAR = '\u0336' # Combining Long Stroke Overlay
+_STRIKETHROUGH_CHAR = '\u0336'  # Combining Long Stroke Overlay
 
 # --- Funções Auxiliares para Aplicar Estilos ---
+
 def _apply_mapping(text: str, mapping: Dict[str, str]) -> str:
     """Aplica um mapeamento de caracteres a uma string."""
     return "".join(mapping.get(char, char) for char in text)
@@ -46,31 +46,33 @@ def _to_strikethrough(text: str) -> str:
     return "".join(char + _STRIKETHROUGH_CHAR for char in text)
 
 # --- Funções de Substituição para Regex ---
+
 def _code_replacer(match: re.Match) -> str:
-    """Substitui `code` por texto monospace."""
+    """Substitui code por texto monospace."""
     return _to_monospace(match.group(1))
 
 def _strikethrough_replacer(match: re.Match) -> str:
-    """Substitui ~~strikethrough~~ por texto riscado."""
+    """Substitui strikethrough por texto riscado."""
     return _to_strikethrough(match.group(1))
 
 def _bold_replacer(match: re.Match) -> str:
-    """Substitui **bold** ou __bold__ por texto bold Unicode."""
+    """Substitui bold por texto bold Unicode."""
     return _to_bold(match.group(1))
 
 def _italic_replacer_star(match: re.Match) -> str:
-    """Substitui *italic* por texto italic Unicode."""
+    """Substitui italic por texto italic Unicode."""
     return _to_italic(match.group(1))
 
 def _italic_replacer_underscore(match: re.Match) -> str:
-    """Substitui _italic_ por texto italic Unicode."""
+    """Substitui italic por texto italic Unicode."""
     return _to_italic(match.group(1))
 
 def _link_replacer(match: re.Match) -> str:
-    """Substitui [text](url) por text."""
+    """Substitui text por text."""
     return match.group(1)
 
 # --- Função Principal ---
+
 def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = None) -> str:
     """
     Converte uma string Markdown básica para uma string usando caracteres Unicode estilizados.
@@ -79,30 +81,42 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
         markdown_text: A string contendo Markdown.
         options: Um dicionário opcional para configurar a conversão.
                  Opções suportadas:
+                 - 'list_bullet' (str): O caractere a usar para itens de lista não ordenada (padrão: '•').
+                 - 'header_style' (str): Estilo para cabeçalhos ('strip' para remover #, 'bold' para aplicar bold, padrão: 'strip').
                  - 'horizontal_rule_char' (str): O caractere a usar para a linha horizontal (padrão: '─').
                  - 'horizontal_rule_length' (int): O comprimento da linha horizontal (padrão: 20).
+
 
     Returns:
         A string convertida com caracteres Unicode.
     """
     if not isinstance(markdown_text, str):
+        # Em um app web, talvez seja melhor retornar string vazia ou mensagem de erro
+        # mas manter a validação ajuda durante o desenvolvimento.
+        # return ""
         raise TypeError("Input must be a string.")
 
     # 1. Configurar Opções
     effective_options: Dict[str, Any] = {
+        'list_bullet': '•',
+        'header_style': 'strip',  # 'strip' ou 'bold'
         'horizontal_rule_char': '─',  # Caractere para HR
         'horizontal_rule_length': 20,  # Comprimento padrão da HR
     }
-
     if options:
+        # Validação básica para garantir que as opções passadas são válidas
         for key, value in options.items():
             if key in effective_options:
-                if key == 'horizontal_rule_char' and not isinstance(value, str):
-                    continue
-                if key == 'horizontal_rule_length' and not isinstance(value, int):
-                    continue
+                # Adiciona validação de tipo se necessário
+                if key == 'list_bullet' and not isinstance(value, str): continue
+                if key == 'header_style' and value not in ['strip', 'bold']: continue
+                if key == 'horizontal_rule_char' and not isinstance(value, str): continue
+                if key == 'horizontal_rule_length' and not isinstance(value, int): continue
+                # Se a validação passar (ou não houver validação específica), atualiza
                 effective_options[key] = value
 
+    list_bullet = effective_options['list_bullet']
+    header_style = effective_options['header_style']
     hr_char = effective_options['horizontal_rule_char']
     hr_length = effective_options['horizontal_rule_length']
 
@@ -126,16 +140,17 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
         # Unordered List
         list_match = re.match(r'^\s*[-*+]\s*(.*)$', line)
         if list_match:
-            # Garante que o texto da lista não seja interpretado como Markdown (ex: bold)
-            list_text = list_match.group(1)
-            processed_lines.append(f"• {list_text}")
+            processed_lines.append(f"{list_bullet} {list_match.group(1)}")
             continue
 
         # Headers
         header_match = re.match(r'^(#+)\s*(.*)$', line)
         if header_match:
             header_text = header_match.group(2)
-            processed_lines.append(header_text)
+            if header_style == 'bold':
+                processed_lines.append(_to_bold(header_text))
+            else:  # Default 'strip'
+                processed_lines.append(header_text)
             continue
 
         # Se não for um elemento de bloco conhecido, adicione a linha como está
@@ -157,8 +172,7 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
     result_text = re.sub(r'~~(.+?)~~', _strikethrough_replacer, result_text)
 
     # Bold: **bold** ou __bold__ -> bold Unicode
-    # Processa ** e __ com a mesma função
-    result_text = re.sub(r'(?<![\*\_])(\*\*|__)(.+?)(\*\*|__)(?![\*\_])', _bold_replacer, result_text)
+    result_text = re.sub(r'(?<![\*\_])(\*\*|__)(.+?)(\*\*|__)(?![\*\:])', _bold_replacer, result_text)
 
     # Italic: *italic* ou _italic_ -> italic Unicode
     # Cuidado: Evitar * em **texto**, _ em __texto__
@@ -170,7 +184,6 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
 
     # Retornar o texto final com as conversões
     return result_text
-
 
 # --- Interface Streamlit ---
 
@@ -188,26 +201,26 @@ em texto usando caracteres Unicode estilizados que podem ser usados em redes soc
 markdown_input = st.text_area(
     "Cole seu texto Markdown aqui:",
     value="""# Exemplo de Markdown
-## Título
-Olá, **mundo**! Este é um *exemplo* de texto.
+
+Título
+
+Olá, mundo! Este é um exemplo de texto.
 
 Podemos usar `código inline` e ~~texto riscado~~.
-Aqui está um [link para o Google](https://google.com).
+Aqui está um [link para o Google](https://www.google.com).
 
 > Isto é um bloco de citação.
 > Outra linha da citação.
 
 Lista de compras:
+
 * Maçãs
-- Bananas
-+ Cerejas
+* Bananas
+* Cerejas
 
 ---
 
-Uma linha horizontal.
-
 Mais texto.
-***
 
 Fim do exemplo.
 """,
@@ -216,6 +229,17 @@ Fim do exemplo.
 
 # Opções na Sidebar
 st.sidebar.header("Opções de Conversão")
+
+list_bullet_char = st.sidebar.text_input(
+    "Caractere para Lista Não Ordenada:",
+    value="•"
+)
+
+header_style_option = st.sidebar.selectbox(
+    "Estilo dos Cabeçalhos:",
+    options=['strip', 'bold'],  # strip = remove #, bold = aplica estilo bold
+    index=0  # strip como padrão
+)
 
 hr_char_option = st.sidebar.text_input(
     "Caractere para Linha Horizontal:",
@@ -232,6 +256,8 @@ hr_length_option = st.sidebar.number_input(
 
 # Coleta as opções em um dicionário
 options_dict = {
+    'list_bullet': list_bullet_char,
+    'header_style': header_style_option,
     'horizontal_rule_char': hr_char_option,
     'horizontal_rule_length': hr_length_option,
 }
@@ -245,23 +271,59 @@ if markdown_input:
 
     st.text(unicode_output)  # Use st.text para exibir o texto bruto com os caracteres unicode
 
+    # Botão para copiar o texto
+    if st.button("Copiar Texto Unicode"):
+        st.success("Texto Unicode copiado para a área de transferência!")
+
+        # Adicionando JavaScript para copiar o texto
+        st.markdown(f"""
+        <script>
+        function copyToClipboard(text) {{
+            navigator.clipboard.writeText(text).then(function() {{
+                console.log('Texto copiado para a área de transferência');
+            }}, function(err) {{
+                console.error('Falha ao copiar texto: ', err);
+            }});
+        }}
+
+        // Chame a função de cópia assim que o botão for clicado
+        copyToClipboard('{unicode_output}');
+        </script>
+        """, unsafe_allow_html=True)
+
+
     st.markdown("""
     <small>Copie o texto acima. A aparência pode variar dependendo da fonte e plataforma onde ele for colado.</small>
     """, unsafe_allow_html=True)
+    IGNORE_WHEN_COPYING_START
+    content_copy
+    download
+    Use code with caution.
+    IGNORE_WHEN_COPYING_END
+
 else:
     st.info("Cole seu texto Markdown na caixa acima para ver a conversão.")
 
 st.markdown("---")
 st.write("Desenvolvido com ❤️ por Engº Paulo Rogério Veiga Silva!")
 st.markdown("""
-**Markdown Básico Suportado:**
-*   `**bold**` ou `__bold__` -> Negrito Unicode (𝐀)
-*   `*italic*` ou `_italic_` -> Itálico Unicode (𝘈)
-*   ``` `code` ``` -> Monospace Unicode (𝚊)
-*   ``` ~~strikethrough~~ ``` -> Riscado (T̶e̶x̶t̶)
-*   ``` [text](url) ``` -> Apenas o texto do link
-*   ``` # Header ```, ``` ## Subheader ```, etc. -> Texto simples ou Negrito (configurável)
-*   ``` > Blockquote ``` -> Texto precedido por `|`
-*   ``` * Item ```, ``` - Item ```, ``` + Item ``` -> Texto precedido por marcador de lista (configurável)
-*   ``` --- ```, ``` *** ```, ``` ___ ``` -> Linha horizontal (configurável)
+Markdown Básico Suportado:
+
+**bold** ou __bold__ -> Negrito Unicode (𝐀)
+
+*italic* ou _italic_ -> Itálico Unicode (𝘈)
+
+`code` -> Monospace Unicode (𝚊)
+
+~~strikethrough~~ -> Riscado (T̶e̶x̶t̶)
+
+[text](url) -> Apenas o texto do link
+
+# Header, ## Subheader, etc. -> Texto simples ou Negrito (configurável)
+
+> Blockquote -> Texto precedido por |
+
+* Item, - Item, + Item -> Texto precedido por marcador de lista (configurável)
+
+---, ***, ___ -> Linha horizontal (configurável)
 """)
