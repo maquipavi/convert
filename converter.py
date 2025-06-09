@@ -87,41 +87,30 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
         markdown_text: A string contendo Markdown.
         options: Um dicionário opcional para configurar a conversão.
                  Opções suportadas:
-                 - 'list_bullet' (str): O caractere a usar para itens de lista não ordenada (padrão: '•').
-                 - 'header_style' (str): Estilo para cabeçalhos ('strip' para remover #, 'bold' para aplicar bold, padrão: 'strip').
                  - 'horizontal_rule_char' (str): O caractere a usar para a linha horizontal (padrão: '─').
                  - 'horizontal_rule_length' (int): O comprimento da linha horizontal (padrão: 20).
-
 
     Returns:
         A string convertida com caracteres Unicode.
     """
     if not isinstance(markdown_text, str):
-        # Em um app web, talvez seja melhor retornar string vazia ou mensagem de erro
-        # mas manter a validação ajuda durante o desenvolvimento.
-        # return ""
         raise TypeError("Input must be a string.")
 
     # 1. Configurar Opções
     effective_options: Dict[str, Any] = {
-        'horizontal_rule_char': '─', # Caractere para HR
-        'horizontal_rule_length': 20, # Comprimento padrão da HR
+        'horizontal_rule_char': '─',  # Caractere para HR
+        'horizontal_rule_length': 20,  # Comprimento padrão da HR
     }
+
     if options:
-        # Validação básica para garantir que as opções passadas são válidas
         for key, value in options.items():
             if key in effective_options:
-                 # Adiciona validação de tipo se necessário
-                 #if key == 'list_bullet' and not isinstance(value, str): continue
-                 #if key == 'header_style' and value not in ['strip', 'bold']: continue
-                 if key == 'horizontal_rule_char' and not isinstance(value, str): continue
-                 if key == 'horizontal_rule_length' and not isinstance(value, int): continue
-                 # Se a validação passar (ou não houver validação específica), atualiza
-                 effective_options[key] = value
+                if key == 'horizontal_rule_char' and not isinstance(value, str):
+                    continue
+                if key == 'horizontal_rule_length' and not isinstance(value, int):
+                    continue
+                effective_options[key] = value
 
-
-    #list_bullet = effective_options['list_bullet']
-    #header_style = effective_options['header_style']
     hr_char = effective_options['horizontal_rule_char']
     hr_length = effective_options['horizontal_rule_length']
 
@@ -133,8 +122,8 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
     for line in lines:
         # Horizontal Rule (deve ser verificado primeiro, pois consome a linha inteira)
         if re.fullmatch(r'\s*([-*_])(\s*\1){2,}\s*', line):
-             processed_lines.append(hr_char * hr_length)
-             continue
+            processed_lines.append(hr_char * hr_length)
+            continue
 
         # Blockquote
         blockquote_match = re.match(r'^\s*>\s*(.*)$', line)
@@ -145,7 +134,9 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
         # Unordered List
         list_match = re.match(r'^\s*[-*+]\s*(.*)$', line)
         if list_match:
-            processed_lines.append(f"• {list_match.group(1)}")
+            # Garante que o texto da lista não seja interpretado como Markdown (ex: bold)
+            list_text = list_match.group(1)
+            processed_lines.append(f"• {list_text}")
             continue
 
         # Headers
@@ -236,21 +227,9 @@ Fim do exemplo.
 # Opções na Sidebar
 st.sidebar.header("Opções de Conversão")
 
-# Removendo os controles para list_bullet e header_style
-#list_bullet_char = st.sidebar.text_input(
-#    "Caractere para Lista Não Ordenada:",
-#    value="•"
-#)
-
-#header_style_option = st.sidebar.selectbox(
-#    "Estilo dos Cabeçalhos:",
-#    options=['strip', 'bold'], # strip = remove #, bold = aplica estilo bold
-#    index=0 # strip como padrão
-#)
-
 hr_char_option = st.sidebar.text_input(
     "Caractere para Linha Horizontal:",
-    value="─" # U+2500 BOX DRAWINGS LIGHT HORIZONTAL
+    value="─"  # U+2500 BOX DRAWINGS LIGHT HORIZONTAL
 )
 
 hr_length_option = st.sidebar.number_input(
@@ -261,11 +240,8 @@ hr_length_option = st.sidebar.number_input(
     step=1
 )
 
-
 # Coleta as opções em um dicionário
 options_dict = {
-    #'list_bullet': list_bullet_char,
-    #'header_style': header_style_option,
     'horizontal_rule_char': hr_char_option,
     'horizontal_rule_length': hr_length_option,
 }
@@ -277,13 +253,13 @@ if markdown_input:
     # Área de Output
     st.subheader("Texto Unicode Convertido:")
 
-    st.text(unicode_output) # Use st.text para exibir o texto bruto com os caracteres unicode
+    st.text(unicode_output)  # Use st.text para exibir o texto bruto com os caracteres unicode
 
     st.markdown("""
     <small>Copie o texto acima. A aparência pode variar dependendo da fonte e plataforma onde ele for colado.</small>
     """, unsafe_allow_html=True)
 else:
-     st.info("Cole seu texto Markdown na caixa acima para ver a conversão.")
+    st.info("Cole seu texto Markdown na caixa acima para ver a conversão.")
 
 st.markdown("---")
 st.write("Desenvolvido com ❤️ por Engº Paulo Rogério Veiga Silva!")
