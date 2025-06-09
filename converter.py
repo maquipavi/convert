@@ -3,7 +3,15 @@
 import streamlit as st
 import re
 from typing import Optional, Dict, Any, List
-import pyperclip  # Importe a biblioteca pyperclip
+
+# Tenta importar pyperclip e lida com a ausência
+try:
+    import pyperclip
+    HAS_PYPERCLIP = True
+except ImportError:
+    HAS_PYPERCLIP = False
+    st.warning("A biblioteca `pyperclip` não está instalada.  O botão 'Copiar Texto' não funcionará. Instale com `pip install pyperclip`.", icon="⚠️")
+
 
 # --- Cole o código da função markdown_to_unicode AQUI ---
 # Incluindo mapeamentos, funções auxiliares e a função principal
@@ -285,9 +293,13 @@ if markdown_input:
     st.text(unicode_output) # Use st.text para exibir o texto bruto com os caracteres unicode
 
     # Botão de copiar
-    if st.button("Copiar Texto"):
-        pyperclip.copy(unicode_output)
-        st.success("Texto copiado para a área de transferência!")
+    if HAS_PYPERCLIP:
+        if st.button("Copiar Texto"):
+            pyperclip.copy(unicode_output)
+            st.success("Texto copiado para a área de transferência!")
+    else:
+        st.warning("A função de copiar está desabilitada porque `pyperclip` não está instalado.", icon="⚠️")
+
 
     st.markdown("""
     <small>Copie o texto acima. A aparência pode variar dependendo da fonte e plataforma onde ele for colado.</small>
