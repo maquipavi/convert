@@ -57,7 +57,7 @@ def _strikethrough_replacer(match: re.Match) -> str:
 
 def _bold_replacer(match: re.Match) -> str:
     """Substitui bold por texto bold Unicode."""
-    return _to_bold(match.group(1))
+    return _to_bold(match.group(2))
 
 def _italic_replacer_star(match: re.Match) -> str:
     """Substitui italic por texto italic Unicode."""
@@ -295,11 +295,7 @@ if markdown_input:
     st.markdown("""
     <small>Copie o texto acima. A aparência pode variar dependendo da fonte e plataforma onde ele for colado.</small>
     """, unsafe_allow_html=True)
-    IGNORE_WHEN_COPYING_START
-    content_copy
-    download
-    Use code with caution.
-    IGNORE_WHEN_COPYING_END
+
 
 else:
     st.info("Cole seu texto Markdown na caixa acima para ver a conversão.")
