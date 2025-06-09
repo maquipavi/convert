@@ -4,10 +4,6 @@ import streamlit as st
 import re
 from typing import Optional, Dict, Any, List
 
-# --- Cole o código da função markdown_to_unicode AQUI ---
-# Incluindo mapeamentos, funções auxiliares e a função principal
-# Você pode copiar e colar o código completo do script anterior aqui.
-
 # --- Mapeamentos Unicode para Estilos ---
 _BOLD_MAP = {
     'A': '𝐀', 'B': '𝐁', 'C': '𝐂', 'D': '𝐃', 'E': '𝐄', 'F': '𝐅', 'G': '𝐆', 'H': '𝐇', 'I': '𝐈', 'J': '𝐉', 'K': '𝐊', 'L': '𝐋', 'M': '𝐌', 'N': '𝐍', 'O': '𝐎', 'P': '𝐏', 'Q': '𝐐', 'R': '𝐑', 'S': '𝐒', 'T': '𝐓', 'U': '𝐔', 'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘', 'Z': '𝐙',
@@ -58,12 +54,8 @@ def _strikethrough_replacer(match: re.Match) -> str:
     """Substitui ~~strikethrough~~ por texto riscado."""
     return _to_strikethrough(match.group(1))
 
-def _bold_replacer_star(match: re.Match) -> str:
-    """Substitui **bold** por texto bold Unicode."""
-    return _to_bold(match.group(1))
-
-def _bold_replacer_underscore(match: re.Match) -> str:
-    """Substitui __bold__ por texto bold Unicode."""
+def _bold_replacer(match: re.Match) -> str:
+    """Substitui **bold** ou __bold__ por texto bold Unicode."""
     return _to_bold(match.group(1))
 
 def _italic_replacer_star(match: re.Match) -> str:
@@ -165,10 +157,8 @@ def markdown_to_unicode(markdown_text: str, options: Optional[Dict[str, Any]] = 
     result_text = re.sub(r'~~(.+?)~~', _strikethrough_replacer, result_text)
 
     # Bold: **bold** ou __bold__ -> bold Unicode
-    # Processa **
-    result_text = re.sub(r'(?<!\*)\*\*(.+?)\*\*(?!\*)', _bold_replacer_star, result_text)
-    # Processa __
-    result_text = re.sub(r'(?<!_)__(.+?)__(?!_)', _bold_replacer_underscore, result_text)
+    # Processa ** e __ com a mesma função
+    result_text = re.sub(r'(?<![\*\_])(\*\*|__)(.+?)(\*\*|__)(?![\*\_])', _bold_replacer, result_text)
 
     # Italic: *italic* ou _italic_ -> italic Unicode
     # Cuidado: Evitar * em **texto**, _ em __texto__
